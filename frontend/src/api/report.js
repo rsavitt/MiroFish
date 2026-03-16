@@ -1,7 +1,7 @@
 import service, { requestWithRetry } from './index'
 
 /**
- * 开始报告生成
+ * 开始Report Generation
  * @param {Object} data - { simulation_id, force_regenerate? }
  */
 export const generateReport = (data) => {
@@ -9,7 +9,7 @@ export const generateReport = (data) => {
 }
 
 /**
- * 获取报告生成状态
+ * 获取Report GenerationState
  * @param {string} reportId
  */
 export const getReportStatus = (reportId) => {

@@ -22,7 +22,7 @@
   background-color: #ffffff;
 }
 
-/* 滚动条样式 */
+/* 滚动 items样式 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
