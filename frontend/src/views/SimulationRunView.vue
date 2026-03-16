@@ -146,7 +146,7 @@ const toggleMaximize = (target) => {
 
 const handleGoBack = async () => {
   // 在Back to Step 2 之前，先Close正在运行的模拟
-  addLog('准备Back to Step 2，正在Close模拟...')
+  addLog('Going back to Step 2, closing simulation...')
   
   // 停止 rounds询
   stopGraphRefresh()
@@ -169,7 +169,7 @@ const handleGoBack = async () => {
           await stopSimulation({ simulation_id: currentSimulationId.value })
           addLog('Simulation force-stopped')
         } catch (stopErr) {
-          addLog(`强制Stop failed: ${stopErr.message}`)
+          addLog(`Force stop failed: ${stopErr.message}`)
         }
       }
     } else {
@@ -213,7 +213,7 @@ const loadSimulationData = async () => {
         const configRes = await getSimulationConfig(currentSimulationId.value)
         if (configRes.success && configRes.data?.time_config?.minutes_per_round) {
           minutesPerRound.value = configRes.data.time_config.minutes_per_round
-          addLog(`时间配置: 每 rounds ${minutesPerRound.value}  minutes`)
+          addLog(`Time config: per round  ${minutesPerRound.value}  minutes`)
         }
       } catch (configErr) {
         addLog(`Time config fetch failed, using default: ${minutesPerRound.value} minutes/ rounds`)
@@ -273,7 +273,7 @@ let graphRefreshTimer = null
 
 const startGraphRefresh = () => {
   if (graphRefreshTimer) return
-  addLog('开启图谱实时Refresh (30s)')
+  addLog('Graph real-time refresh enabled (30s)')
   // 立即Refresh一次，然后每30秒Refresh
   graphRefreshTimer = setInterval(refreshGraph, 30000)
 }
@@ -282,7 +282,7 @@ const stopGraphRefresh = () => {
   if (graphRefreshTimer) {
     clearInterval(graphRefreshTimer)
     graphRefreshTimer = null
-    addLog('停止图谱实时Refresh')
+    addLog('Graph real-time refresh stopped')
   }
 }
 
@@ -295,7 +295,7 @@ watch(isSimulating, (newValue) => {
 }, { immediate: true })
 
 onMounted(() => {
-  addLog('SimulationRunView Initializing')
+  addLog('SimulationRunView initialized')
   
   // 记录 maxRounds 配置（值已在Initializing时从 query 参数获取）
   if (maxRounds.value) {

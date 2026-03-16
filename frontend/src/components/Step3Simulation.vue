@@ -401,7 +401,7 @@ const doStartSimulation = async () => {
     
     if (props.maxRounds) {
       params.max_rounds = props.maxRounds
-      addLog(`设置最大模拟 rounds数: ${props.maxRounds}`)
+      addLog(`Max simulation rounds: ${props.maxRounds}`)
     }
     
     addLog('Dynamic graph update mode enabled')
@@ -410,7 +410,7 @@ const doStartSimulation = async () => {
     
     if (res.success && res.data) {
       if (res.data.force_restarted) {
-        addLog('✓ 已清理旧的模拟日志，重新Run Simulation')
+        addLog('Old simulation logs cleared, restarting simulation')
       }
       addLog('Simulation engine started successfully')
       addLog(`  ├─ PID: ${res.data.process_pid || '-'}`)
@@ -427,7 +427,7 @@ const doStartSimulation = async () => {
     }
   } catch (err) {
     startError.value = err.message
-    addLog(`✗ 启动Error: ${err.message}`)
+    addLog(`Start error: ${err.message}`)
     emit('update-status', 'error')
   } finally {
     isStarting.value = false
@@ -519,7 +519,7 @@ const fetchRunStatus = async () => {
         if (platformsCompleted && !isCompleted) {
           addLog('All platform simulations completed')
         }
-        addLog('✓ 模拟Completed')
+        addLog('Simulation completed')
         phase.value = 2
         stopPolling()
         emit('update-status', 'completed')
@@ -645,12 +645,12 @@ const handleNextStep = async () => {
   }
   
   if (isGeneratingReport.value) {
-    addLog('Report Generation请求已发送，请稍候...')
+    addLog('Report generation request sent, please wait...')
     return
   }
   
   isGeneratingReport.value = true
-  addLog('正在启动Report Generation...')
+  addLog('Starting report generation...')
   
   try {
     const res = await generateReport({
@@ -660,16 +660,16 @@ const handleNextStep = async () => {
     
     if (res.success && res.data) {
       const reportId = res.data.report_id
-      addLog(`✓ Report Generation任务已启动: ${reportId}`)
+      addLog(`Report generation task started: ${reportId}`)
       
       // 跳转到报告页面
       router.push({ name: 'Report', params: { reportId } })
     } else {
-      addLog(`✗ 启动Report GenerationFailed: ${res.error || 'Unknown error'}`)
+      addLog(`Report generation failed: ${res.error || 'Unknown error'}`)
       isGeneratingReport.value = false
     }
   } catch (err) {
-    addLog(`✗ 启动Report GenerationError: ${err.message}`)
+    addLog(`Report generation error: ${err.message}`)
     isGeneratingReport.value = false
   }
 }
@@ -685,7 +685,7 @@ watch(() => props.systemLogs?.length, () => {
 })
 
 onMounted(() => {
-  addLog('Step3 模拟运行Initializing')
+  addLog('Step3 simulation run initialized')
   if (props.simulationId) {
     doStartSimulation()
   }

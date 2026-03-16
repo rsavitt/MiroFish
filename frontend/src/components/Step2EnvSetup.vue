@@ -987,28 +987,28 @@ const fetchConfigRealtime = async () => {
         
         // 显示详细配置摘要
         if (data.summary) {
-          addLog(`  ├─ Agent数量: ${data.summary.total_agents} agents`)
+          addLog(`  ├─ Agents: ${data.summary.total_agents} agents`)
           addLog(`  ├─ Duration: ${data.summary.simulation_hours} hours`)
           addLog(`  ├─ Initial Posts: ${data.summary.initial_posts_count} items`)
-          addLog(`  ├─ 热点话题: ${data.summary.hot_topics_count} agents`)
-          addLog(`  └─ 平台配置: Twitter ${data.summary.has_twitter_config ? '✓' : '✗'}, Reddit ${data.summary.has_reddit_config ? '✓' : '✗'}`)
+          addLog(`  ├─ Hot topics: ${data.summary.hot_topics_count} agents`)
+          addLog(`  └─ Platforms: Twitter ${data.summary.has_twitter_config ? '✓' : '✗'}, Reddit ${data.summary.has_reddit_config ? '✓' : '✗'}`)
         }
         
         // 显示时间配置详情
         if (data.config.time_config) {
           const tc = data.config.time_config
-          addLog(`时间配置: 每 rounds${tc.minutes_per_round} minutes, 共${Math.floor((tc.total_simulation_hours * 60) / tc.minutes_per_round)} rounds`)
+          addLog(`Time config: per round ${tc.minutes_per_round} minutes, total ${Math.floor((tc.total_simulation_hours * 60) / tc.minutes_per_round)} rounds`)
         }
         
         // 显示事件配置
         if (data.config.event_config?.narrative_direction) {
           const narrative = data.config.event_config.narrative_direction
-          addLog(`叙事方向: ${narrative.length > 50 ? narrative.substring(0, 50) + '...' : narrative}`)
+          addLog(`Narrative direction: ${narrative.length > 50 ? narrative.substring(0, 50) + '...' : narrative}`)
         }
         
         stopConfigPolling()
         phase.value = 4
-        addLog('✓ Env SetupDone，可以Run Simulation')
+        addLog('Env setup complete, ready to run simulation')
         emit('update-status', 'completed')
       }
     }
@@ -1019,11 +1019,11 @@ const fetchConfigRealtime = async () => {
 
 const loadPreparedData = async () => {
   phase.value = 2
-  addLog('正在Load已有配置数据...')
+  addLog('Loading existing config data...')
 
   // 最后获取一次 Profiles
   await fetchProfilesRealtime()
-  addLog(`已Load ${profiles.value.length}  agentsAgent人设`)
+  addLog(`Loaded ${profiles.value.length}  agent personas`)
 
   // 获取配置（使用实时接口）
   try {
@@ -1031,26 +1031,26 @@ const loadPreparedData = async () => {
     if (res.success && res.data) {
       if (res.data.config_generated && res.data.config) {
         simulationConfig.value = res.data.config
-        addLog('✓ 模拟配置LoadSuccess')
+        addLog('Simulation config loaded')
         
         // 显示详细配置摘要
         if (res.data.summary) {
-          addLog(`  ├─ Agent数量: ${res.data.summary.total_agents} agents`)
+          addLog(`  ├─ Agents: ${res.data.summary.total_agents} agents`)
           addLog(`  ├─ Duration: ${res.data.summary.simulation_hours} hours`)
           addLog(`  └─ Initial Posts: ${res.data.summary.initial_posts_count} items`)
         }
         
-        addLog('✓ Env SetupDone，可以Run Simulation')
+        addLog('Env setup complete, ready to run simulation')
         phase.value = 4
         emit('update-status', 'completed')
       } else {
         // 配置尚未生成，开始 rounds询
-        addLog('配置Generating，开始 rounds询Pending...')
+        addLog('Config generating, polling...')
         startConfigPolling()
       }
     }
   } catch (err) {
-    addLog(`Load配置Failed: ${err.message}`)
+    addLog(`Config load failed: ${err.message}`)
     emit('update-status', 'error')
   }
 }

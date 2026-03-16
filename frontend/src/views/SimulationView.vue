@@ -152,7 +152,7 @@ const handleNextStep = (params = {}) => {
   if (params.maxRounds) {
     addLog(`Custom simulation rounds: ${params.maxRounds}  rounds`)
   } else {
-    addLog('使用自动配置的模拟 rounds数')
+    addLog('Using auto-configured simulation rounds')
   }
   
   // 构建路由参数
@@ -287,7 +287,7 @@ const refreshGraph = () => {
 }
 
 onMounted(async () => {
-  addLog('SimulationView Initializing')
+  addLog('SimulationView initialized')
   
   // 检查并Close正在运行的模拟（用户从 Step 3 Back时）
   await checkAndStopRunningSimulation()

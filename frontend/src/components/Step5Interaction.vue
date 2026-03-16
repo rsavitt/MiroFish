@@ -677,7 +677,7 @@ const sendMessage = async () => {
 }
 
 const sendToReportAgent = async (message) => {
-  addLog(`向 Report Agent 发送: ${message.substring(0, 50)}...`)
+  addLog(`Sent to Report Agent: ${message.substring(0, 50)}...`)
   
   // Build chat history for API
   const historyForApi = chatHistory.value
@@ -700,7 +700,7 @@ const sendToReportAgent = async (message) => {
       content: res.data.response || res.data.answer || 'None响应',
       timestamp: new Date().toISOString()
     })
-    addLog('Report Agent 已回复')
+    addLog('Report Agent replied')
   } else {
     throw new Error(res.error || '请求Failed')
   }
@@ -708,10 +708,10 @@ const sendToReportAgent = async (message) => {
 
 const sendToAgent = async (message) => {
   if (!selectedAgent.value || selectedAgentIndex.value === null) {
-    throw new Error('请先Select一 agents模拟 agents体')
+    throw new Error('请先Select一 simulated agents')
   }
   
-  addLog(`向 ${selectedAgent.value.username} 发送: ${message.substring(0, 50)}...`)
+  addLog(`Sent to ${selectedAgent.value.username}: ${message.substring(0, 50)}...`)
   
   // Build prompt with chat history
   let prompt = message
@@ -761,7 +761,7 @@ const sendToAgent = async (message) => {
         content: responseContent,
         timestamp: new Date().toISOString()
       })
-      addLog(`${selectedAgent.value.username} 已回复`)
+      addLog(`${selectedAgent.value.username}  replied`)
     } else {
       throw new Error('None响应数据')
     }
@@ -803,7 +803,7 @@ const submitSurvey = async () => {
   if (selectedAgents.value.size === 0 || !surveyQuestion.value.trim()) return
   
   isSurveying.value = true
-  addLog(`Send Survey给 ${selectedAgents.value.size}  agents对象...`)
+  addLog(`Sending survey to ${selectedAgents.value.size}  agents...`)
   
   try {
     const interviews = Array.from(selectedAgents.value).map(idx => ({
@@ -857,12 +857,12 @@ const submitSurvey = async () => {
       }
       
       surveyResults.value = surveyResultsList
-      addLog(`收到 ${surveyResults.value.length}  responses`)
+      addLog(`Received ${surveyResults.value.length}  responses`)
     } else {
       throw new Error(res.error || '请求Failed')
     }
   } catch (err) {
-    addLog(`问卷Send failed: ${err.message}`)
+    addLog(`Survey send failed: ${err.message}`)
   } finally {
     isSurveying.value = false
   }
@@ -882,7 +882,7 @@ const loadReportData = async () => {
       await loadAgentLogs()
     }
   } catch (err) {
-    addLog(`Load报告Failed: ${err.message}`)
+    addLog(`Report load failed: ${err.message}`)
   }
 }
 
@@ -904,10 +904,10 @@ const loadAgentLogs = async () => {
         }
       })
       
-      addLog('报告数据LoadDone')
+      addLog('Report data loaded')
     }
   } catch (err) {
-    addLog(`Load报告日志Failed: ${err.message}`)
+    addLog(`Report log load failed: ${err.message}`)
   }
 }
 
@@ -918,10 +918,10 @@ const loadProfiles = async () => {
     const res = await getSimulationProfilesRealtime(props.simulationId, 'reddit')
     if (res.success && res.data) {
       profiles.value = res.data.profiles || []
-      addLog(`Load了 ${profiles.value.length}  agents模拟 agents体`)
+      addLog(`Loaded ${profiles.value.length}  simulated agents`)
     }
   } catch (err) {
-    addLog(`Load模拟 agents体Failed: ${err.message}`)
+    addLog(`Simulated agents load failed: ${err.message}`)
   }
 }
 
