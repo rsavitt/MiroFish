@@ -314,27 +314,46 @@ class GraphBuilderService:
                 for chunk in batch_chunks
             ]
             
-            # 发送到Zep
-            try:
-                batch_result = self.client.graph.add_batch(
-                    graph_id=graph_id,
-                    episodes=episodes
-                )
-                
-                # 收集返回的 episode uuid
-                if batch_result and isinstance(batch_result, list):
-                    for ep in batch_result:
-                        ep_uuid = getattr(ep, 'uuid_', None) or getattr(ep, 'uuid', None)
-                        if ep_uuid:
-                            episode_uuids.append(ep_uuid)
-                
-                # 避免请求过快
-                time.sleep(1)
-                
-            except Exception as e:
-                if progress_callback:
-                    progress_callback(f"批次 {batch_num} 发送失败: {str(e)}", 0)
-                raise
+            # 发送到Zep (with rate limit retry)
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    batch_result = self.client.graph.add_batch(
+                        graph_id=graph_id,
+                        episodes=episodes
+                    )
+
+                    # 收集返回的 episode uuid
+                    if batch_result and isinstance(batch_result, list):
+                        for ep in batch_result:
+                            ep_uuid = getattr(ep, 'uuid_', None) or getattr(ep, 'uuid', None)
+                            if ep_uuid:
+                                episode_uuids.append(ep_uuid)
+
+                    # 避免请求过快
+                    time.sleep(1)
+                    break  # success
+
+                except Exception as e:
+                    err_str = str(e)
+                    is_rate_limit = '429' in err_str or 'rate limit' in err_str.lower()
+
+                    if is_rate_limit and attempt < max_retries - 1:
+                        wait_time = 65.0
+                        logger.warning(
+                            f"Batch {batch_num} rate limited (429), waiting {wait_time:.0f}s "
+                            f"before retry {attempt + 2}/{max_retries}..."
+                        )
+                        if progress_callback:
+                            progress_callback(f"Rate limited, waiting {wait_time:.0f}s...", 0)
+                        time.sleep(wait_time)
+                    elif attempt < max_retries - 1 and not is_rate_limit:
+                        logger.warning(f"Batch {batch_num} attempt {attempt + 1} failed: {err_str[:100]}, retrying...")
+                        time.sleep(2 ** attempt)
+                    else:
+                        if progress_callback:
+                            progress_callback(f"Batch {batch_num} failed: {str(e)}", 0)
+                        raise
         
         return episode_uuids
     

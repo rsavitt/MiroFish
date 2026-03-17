@@ -112,16 +112,27 @@ class ZepEntityReader:
                 return func()
             except Exception as e:
                 last_exception = e
+                err_str = str(e)
+                is_rate_limit = '429' in err_str or 'rate limit' in err_str.lower()
+
                 if attempt < max_retries - 1:
-                    logger.warning(
-                        f"Zep {operation_name} 第 {attempt + 1} 次尝试失败: {str(e)[:100]}, "
-                        f"{delay:.1f}秒后重试..."
-                    )
-                    time.sleep(delay)
-                    delay *= 2  # 指数退避
+                    if is_rate_limit:
+                        wait_time = 65.0
+                        logger.warning(
+                            f"Zep {operation_name} rate limited (429), "
+                            f"waiting {wait_time:.0f}s before retry {attempt + 2}/{max_retries}..."
+                        )
+                        time.sleep(wait_time)
+                    else:
+                        logger.warning(
+                            f"Zep {operation_name} attempt {attempt + 1} failed: {err_str[:100]}, "
+                            f"retrying in {delay:.1f}s..."
+                        )
+                        time.sleep(delay)
+                        delay *= 2
                 else:
-                    logger.error(f"Zep {operation_name} 在 {max_retries} 次尝试后仍失败: {str(e)}")
-        
+                    logger.error(f"Zep {operation_name} failed after {max_retries} attempts: {err_str[:200]}")
+
         raise last_exception
     
     def get_all_nodes(self, graph_id: str) -> List[Dict[str, Any]]:

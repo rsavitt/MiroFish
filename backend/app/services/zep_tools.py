@@ -418,8 +418,9 @@ class ZepToolsService:
     """
     
     # 重试配置
-    MAX_RETRIES = 3
+    MAX_RETRIES = 5
     RETRY_DELAY = 2.0
+    RATE_LIMIT_DELAY = 65.0  # Wait 65s on 429 (Zep free plan resets per minute)
     
     def __init__(self, api_key: Optional[str] = None, llm_client: Optional[LLMClient] = None):
         self.api_key = api_key or Config.ZEP_API_KEY
@@ -439,26 +440,38 @@ class ZepToolsService:
         return self._llm_client
     
     def _call_with_retry(self, func, operation_name: str, max_retries: int = None):
-        """带重试机制的API调用"""
+        """带重试机制的API调用，支持429 rate limit自动等待"""
         max_retries = max_retries or self.MAX_RETRIES
         last_exception = None
         delay = self.RETRY_DELAY
-        
+
         for attempt in range(max_retries):
             try:
                 return func()
             except Exception as e:
                 last_exception = e
+                err_str = str(e)
+                is_rate_limit = '429' in err_str or 'rate limit' in err_str.lower() or 'Rate limit' in err_str
+
                 if attempt < max_retries - 1:
-                    logger.warning(
-                        f"Zep {operation_name} attempt {attempt + 1} failed: {str(e)[:100]}, "
-                        f"retrying in {delay:.1f}s..."
-                    )
-                    time.sleep(delay)
-                    delay *= 2
+                    if is_rate_limit:
+                        # Extract Retry-After if available, otherwise use default
+                        wait_time = self.RATE_LIMIT_DELAY
+                        logger.warning(
+                            f"Zep {operation_name} rate limited (429), "
+                            f"waiting {wait_time:.0f}s before retry {attempt + 2}/{max_retries}..."
+                        )
+                        time.sleep(wait_time)
+                    else:
+                        logger.warning(
+                            f"Zep {operation_name} attempt {attempt + 1} failed: {err_str[:100]}, "
+                            f"retrying in {delay:.1f}s..."
+                        )
+                        time.sleep(delay)
+                        delay *= 2
                 else:
-                    logger.error(f"Zep {operation_name} 在 {max_retries} 次尝试后仍失败: {str(e)}")
-        
+                    logger.error(f"Zep {operation_name} failed after {max_retries} attempts: {err_str[:200]}")
+
         raise last_exception
     
     def search_graph(
